@@ -1,0 +1,130 @@
+## ----setup, include=FALSE------------------------------------------------
+knitr::opts_chunk$set(echo = TRUE)
+
+## ----message = FALSE, warning = FALSE------------------------------------
+library(Seurat)
+library(tidyverse)
+library(patchwork)
+library(cellcuratoR)
+
+## we use the pbmc_small dataset pre-packed with Seurat
+
+head(pbmc_small@meta.data)
+celltype <- plyr::mapvalues(x = pbmc_small@meta.data$RNA_snn_res.1, 
+                            from = seq(from = 0, to = 2), 
+                            to = c("celltype_A", "celltype_B", "celltype_C"))
+pbmc_small@meta.data <- data.frame(pbmc_small@meta.data, celltype)
+
+my_filepath <- file.path(find.package("cellcuratoR"))
+print(paste0("exporting data to: ", my_filepath, "pbmc_cellcuratoR_export/"))
+
+export_shiny_object(seurat_object = pbmc_small, 
+                    final_cluster_column_name = "RNA_snn_res.1",
+                    library_id_column_name = "orig.ident",
+                    classification_column_name = "celltype",
+                    create_dendrogram = TRUE,
+                    custom_cluster_colors = FALSE,
+                    custom_library_colors = FALSE,
+                    export_data_path = file.path(my_filepath, "pbmc_cellcuratoR_export/"))
+                    #export_data_path = "~/Desktop/pbmc/")
+
+## ------------------------------------------------------------------------
+load(file.path(my_filepath, "pbmc_cellcuratoR_export", "seurat_obj.RData")) # Loads the seurat_obj, which renames several columns in the meta.data
+                                                    # with standardized names for use in the Shiny application. 
+
+my_violin_data <- prepare_violin_data_colors(my_object = seurat_obj,
+                          genes_to_investigate = c("CD79A", "CD79B", "HLA-DRA"),
+                          dendrogram_input = seurat_obj@misc$dendrogram,
+                          colors = seurat_obj@misc$final_colors)
+# my_violin_data contains a list containing elements (1) an expression matrix from the seurat data slot and 
+# (2) ordered colors for the violin plot. 
+
+## ------------------------------------------------------------------------
+theme_shiny <- function() {
+      theme(
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.line.y = element_blank(),
+        panel.background = element_rect(fill = "white"),
+        panel.grid = element_blank(),
+        strip.background = element_blank(),
+        strip.text.x = element_text(size = rel(1.5)),
+        legend.position = "none"
+      )
+    }
+
+p_violins <-
+  construct_violin_plot(
+    my_object = seurat_obj,
+    genes_to_investigate = c("CD79A", "CD79B", "HLA-DRA"),
+    dendrogram_input = seurat_obj@misc$dendrogram,
+    colors = seurat_obj@misc$final_colors,
+    use_noise = TRUE,
+    scale = "free_x"
+    ) +
+  theme_shiny()
+
+dendrogram_data <- ggdendro::dendro_data(seurat_obj@misc$dendrogram, type = "rectangle")
+
+p_dendrogram <-
+  ggdendro::segment(dendrogram_data) %>%
+  ggplot2::ggplot(aes(x = x, y = y)) +
+  geom_segment(
+    aes(
+      xend = xend,
+      yend = yend
+      )
+    ) +
+  geom_text(
+    data = ggdendro::label(dendrogram_data),
+    aes(label = label),
+    hjust = 1,
+    vjust = -0.7,
+    size = 6
+    ) +
+  scale_y_reverse() +
+  scale_x_continuous(expand = c(0, 0.6)) +
+  coord_flip() +
+  theme_shiny()
+
+p_dendrogram +
+  p_violins +
+  patchwork::plot_layout(ncol = 2, widths = c(3, 7))
+
+
+## ------------------------------------------------------------------------
+p_violins <-
+  construct_violin_plot(
+    my_object = seurat_obj,
+    genes_to_investigate = c("CD79A", "CD79B", "HLA-DRA"),
+    dendrogram_input = seurat_obj@misc$dendrogram,
+    colors = c("red", "green", "yellow"),
+    use_noise = TRUE,
+    scale = "free_x"
+    ) +
+  theme_shiny()
+
+p_dendrogram +
+  p_violins +
+  patchwork::plot_layout(ncol = 2, widths = c(3, 7))
+
+
+## ------------------------------------------------------------------------
+p_violins <-
+  construct_violin_plot(
+    my_object = seurat_obj,
+    genes_to_investigate = c("CD79A", "CD79B", "HLA-DRA"),
+    dendrogram_input = seurat_obj@misc$dendrogram,
+    colors = c("red", "green", "yellow"),
+    use_noise = FALSE,
+    scale = "free_x"
+    ) +
+  theme_shiny()
+
+
+p_dendrogram +
+  p_violins +
+  patchwork::plot_layout(ncol = 2, widths = c(3, 7))
+
+

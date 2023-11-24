@@ -1153,7 +1153,7 @@ shinyAppServer <- shinyServer(function(session, input, output) {
   #######################
   output$cellcuratoR <- renderImage({
     return(list(
-      src = "../www/cellcuratoR.png",
+      src = "../www/CellPilot.png",
       filetype = "image/png",
       width = 346.8, #2312
       height = 401.0, #2673

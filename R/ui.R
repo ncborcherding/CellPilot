@@ -18,8 +18,8 @@ sidebar <- dashboardSidebar(
     ),
     shinyDirButton("directory", "Select Seurat object directory", "Please select a folder"),
     uiOutput("dataSelect"),
-    menuItem(text = "cellcuratoR",
-             tabName = "cellcuratoR",
+    menuItem(text = "CellPilot",
+             tabName = "CellPilot",
              icon = icon("file-code-o")
     )
   )
@@ -106,18 +106,16 @@ body <- dashboardBody(
             )
     ),
 
-    tabItem(tabName = "cellcuratoR",
-            h3(strong("Powered by cellcuratoR")),
+    tabItem(tabName = "CellPilot",
+            h3(strong("Fly through your data with CellPilot")),
             fluidRow(
               column(6,
                      br(),
                      br(),
-                     p("cellcuratoR is an R package for sharing interactive single-cell expression data from Seurat. Any single-cell RNA
-                     sequencing dataset processed with Seurat (v3) can be converted into objects interpretable by cellcuratoR. Code and
-                       documentation are available on GitHub, as well as animated instructions for navigating the user interface.", style = "font-size:20px")
+                     p("CellPilot is a interactive analysis platform for single-cell data for Seurat v5.", style = "font-size:20px")
               ),
               column(6,
-                     imageOutput("cellcuratoR", width = "100%")
+                     imageOutput("CellPilot", width = "100%")
               )
 
             )
@@ -127,7 +125,8 @@ body <- dashboardBody(
 
 # Put them together into a dashboardPage
 shinyAppUI <- dashboardPage(
-  dashboardHeader(title = "cellcuratoR"
+  skin = "red",
+  dashboardHeader(title = "CellPilot"
   ),
   sidebar,
   body

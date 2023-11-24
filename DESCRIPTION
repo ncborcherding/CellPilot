@@ -1,15 +1,11 @@
-Package: cellcuratoR
+Package: CellPilot
 Type: Package
-Title: Shares Interactive Single-Cell Visualizations from Seurat
-Version: 0.1.0
+Title: Interactively fly through Seurat data
+Version: 0.99.0
 Authors@R: c(
-  person("Andrew", "Voigt", email = "andrew-voigt@uiowa.edu", role = c("aut", "cre")),
-  person("Scott", "Whitmore", role = c("aut")))
-URL: www.github.com/drewvoigt10/cellcuratoR
-Description: cellcuratoR is a package for sharing interactive single-cell gene expression
-    visualization from Seurat. This package can be used to interact with Seuart-analyzed 
-    single-cell RNA sequencing data interactively with the R Shiny framework.
-License: GPL-3 + file LICENSE
+  person("Nick", "Borcherding", email = "andrew-voigt@uiowa.edu", role = c("aut", "cre")))
+Description: CellPilot is a package for sharing and analyzing single-cell Seurat-based data with the R Shiny framework.
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.0

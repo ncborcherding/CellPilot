@@ -1151,7 +1151,7 @@ shinyAppServer <- shinyServer(function(session, input, output) {
   #######################
   ### Embedded images ###
   #######################
-  output$cellcuratoR <- renderImage({
+  output$CellPilot <- renderImage({
     return(list(
       src = "../www/CellPilot.png",
       filetype = "image/png",

@@ -26,7 +26,9 @@
 
 shinyAppServer <- shinyServer(function(session, input, output) {
 
-  
+  #############################
+  #Loading and Downloading Data
+  #############################
   loaded_data <- reactive({
     req(input$dataSelect)
     if (!is.null(input$dataSelect)) {
@@ -35,11 +37,33 @@ shinyAppServer <- shinyServer(function(session, input, output) {
       NULL
     }
   })
+ 
+  
+  output$download_SO <- downloadHandler(
+    
+    filename = function(){
+      paste0(input$dataSelect, ".rds")
+    }, 
+    content = function(fname){
+      saveRDS(loaded_data(), fname)
+    }
+  )
+  
+  output$download_meta<- downloadHandler(
+    filename = function(){
+      paste0(input$dataSelect, "_meta.data.csv")
+    }, 
+    content = function(fname){
+      write.csv(loaded_data()@meta.data, fname)
+    }
+  )
   
   
   all_meta <- reactive({
     req(input$dataSelect)
-    meta.headers <- colnames(loaded_data()[[]])
+    loaded_plot_data <- loaded_data()
+    meta.headers <- data.frame(colnames(loaded_plot_data[[]]))
+    colnames(meta.headers) <- "variables"
     meta.headers
   })
   
@@ -58,6 +82,7 @@ shinyAppServer <- shinyServer(function(session, input, output) {
   })
   
   output$umapPlot <- renderPlotly({
+    req(input$plot_meta)
     loaded_plot_data <- loaded_data()
     # Cells are colored according to the selection in the UI tSNE_plot_color
     dim_plot <- Seurat::DimPlot(object = loaded_plot_data)
@@ -169,9 +194,25 @@ shinyAppServer <- shinyServer(function(session, input, output) {
     )
   })
   
+  output$dimredPlotHelper <- renderUI({
+    # The helper UI for the heatmap in which the user can select which gene should be heat-map-ified
+    conditionalPanel(
+      condition = "input.tabset1 == 'Dimensionality Reduction'",
+      selectizeInput(session, 
+                     "plot_meta",
+                     label = h3("Variables to Plot"),
+                     choices = NULL,
+                     multiple = FALSE,
+                     options= list(maxOptions = 100)
+      )
+    )
+  })
+  
+  
   observeEvent(input$dataSelect, {
     choicesVec <- all_genes()$genes
-    updateSelectizeInput(session, "plot_gene_heatmap",
+    updateSelectizeInput(session, 
+                         "plot_gene_heatmap",
                          choices = sort(choicesVec),
                          selected = NULL,
                          server=TRUE,
@@ -179,6 +220,19 @@ shinyAppServer <- shinyServer(function(session, input, output) {
                                         openOnFocus = FALSE,
                                         items = c(),
                                         score = getScore()
+                         )
+    )
+  })
+  
+  observeEvent(input$dataSelect, {
+    choicesVec <- all_meta()$variables
+    updateSelectizeInput(session, "plot_meta",
+                         choices = choicesVec,
+                         selected = NULL,
+                         server=TRUE,
+                         options = list(dropdownParent = 'body',
+                                        openOnFocus = FALSE,
+                                        items = c()
                          )
     )
   })
@@ -211,7 +265,7 @@ shinyAppServer <- shinyServer(function(session, input, output) {
   #######################
   output$CellPilot <- renderImage({
     return(list(
-      src = "/www/CellPilot.png",
+      src = "./www/CellPilot.png",
       filetype = "image/png",
       width = 346.8, #2312
       height = 401.0, #2673

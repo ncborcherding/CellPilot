@@ -16,17 +16,21 @@ sidebar <- dashboardSidebar(
     id = "menutab",
     menuItem(text = "Dashboard",
              tabName = "dashboard",
-             icon = icon("dashboard")),
-    menuItem(
-             selectInput("dataSelect", "Choose a data file:", 
+             icon = icon("dashboard")
+             ),
+    menuItem(selectInput("dataSelect", "Choose a data file:", 
                          choices = c("","Figure1", "Figure2", "Figure3", "Figure7"), 
                          multiple = FALSE)
              ),
     menuItem(text = "CellPilot",
              tabName = "CellPilot",
              icon = icon("file-code-o")
+             ),
+    menuItem(downloadButton('download_SO',"Download Seurat Object")
+             ),
+    menuItem(downloadButton('download_meta',"Download Meta Data")
+             )
     
-    )
   )
 )
 

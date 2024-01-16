@@ -22,7 +22,7 @@ sidebar <- dashboardSidebar(
                          choices = c("","Figure1", "Figure2", "Figure3", "Figure7"), 
                          multiple = FALSE)
              ),
-    menuItem(text = "CellPilot",
+    menuItem(text = "About CellPilot",
              tabName = "CellPilot",
              icon = icon("file-code-o")
              ),
@@ -54,7 +54,8 @@ body <- dashboardBody(
                      id = "options1",
                      tabPanel( uiOutput("dimredPlotHelper"),
                                uiOutput("featurePlotHelper"),
-                               uiOutput("violinPlotHelper"))
+                               uiOutput("violinPlotHelper"),
+                               uiOutput("violinMetaHelper"))
               )
             )
     ),

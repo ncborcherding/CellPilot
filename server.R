@@ -117,6 +117,21 @@ shinyAppServer <- shinyServer(function(session, input, output) {
     )
   })
   
+  observeEvent(input$dataSelect, {
+    choicesVec <- all_genes()$genes
+    updateSelectizeInput(session, 
+                         "plot_gene_violin",
+                         choices = sort(choicesVec),
+                         selected = NULL,
+                         server = TRUE,
+                         options = list(dropdownParent = 'body',
+                                        openOnFocus = FALSE,
+                                        items = c(),
+                                        score = getScore()
+                         )
+    )
+  })
+  
   # https://stackoverflow.com/questions/52039435/force-selectize-js-only-to-show-options-that-start-with-user-input-in-shiny
   getScore <- function() {
     # the updateSelectizeInput for displaying genes in the heatmaps and violin plots
@@ -165,6 +180,21 @@ shinyAppServer <- shinyServer(function(session, input, output) {
                      options= list(maxOptions = 100)
       )
     )
+  })
+  
+  output$violinPlotHelper <- renderUI({
+    # The helper UI for the violin plot. Multiple genes can be input if the violin plot tab is selected within tabset 2.
+    conditionalPanel(
+      condition = "input.tabset1 == 'Violin Plot'",
+      selectizeInput('plot_gene_violin',
+                     label = h3("Violin genes"),
+                     choices = NULL,
+                     multiple= FALSE,
+                     options= list(maxOptions = 100)
+      )
+      
+    )
+    
   })
   
   
@@ -285,6 +315,31 @@ shinyAppServer <- shinyServer(function(session, input, output) {
             titleY = TRUE,
             titleX = TRUE)
     
+  })
+  
+  output$violinPlot <- renderPlotly({
+    req(input$plot_gene_violin)
+    # Returns a feature plot - a heatmap of the dimensionality reduction overlayed with expression of th egene of interest
+    loaded_plot_data <- loaded_data()
+    
+    legend_label <- stringr::str_sort(levels(as.factor(loaded_plot_data@active.ident)), numeric = TRUE)
+    legend_x_cord <- rep(1, length(legend_label))
+    legend_y_cord <- rev(seq(1:length(legend_label)))
+    manual_legend_data <- data.frame(legend_x_cord, legend_y_cord, legend_label)
+    
+    colors_use <- colorRampPalette(RColorBrewer::brewer.pal(11, "Paired"))(length(legend_label))
+    
+    
+    violin_plot = Seurat::VlnPlot(object = loaded_plot_data,
+                                  features = input$plot_gene_violin) + 
+      scale_fill_manual(values = colors_use)+
+      scale_x_discrete(limits = rev) + 
+      theme(legend.position = "none",
+          axis.title.y = element_blank()) +
+      coord_flip() + 
+      ggtitle("")
+    
+    ggplotly(violin_plot)
   })
   
   #######################

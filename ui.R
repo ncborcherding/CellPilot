@@ -46,16 +46,20 @@ body <- dashboardBody(
                          ),
                 tabPanel("Feature Plot",
                          plotlyOutput("featurePlot", height = "650px")),
-                tabPanel("Violin Plot")),
+                tabPanel("Violin Plot",
+                         plotlyOutput("violinPlot", height = "650px")
+                         )
+                ),
               tabBox(width = 4,
                      id = "options1",
                      tabPanel( uiOutput("dimredPlotHelper"),
-                               uiOutput("featurePlotHelper"))
+                               uiOutput("featurePlotHelper"),
+                               uiOutput("violinPlotHelper"))
               )
             )
     ),
 
-    tabItem(tabName = "CellPilot",
+    tabItem(tabName = "About CellPilot",
             h3(strong("Fly through single-cell data with CellPilot")),
             fluidRow(
               column(6,

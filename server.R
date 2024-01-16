@@ -172,12 +172,6 @@ shinyAppServer <- shinyServer(function(session, input, output) {
   #Dim Red Plot
   output$umapPlot <- renderPlotly({
     loaded_plot_data <- loaded_data()
-    # Cells are colored according to the selection in the UI tSNE_plot_color
-    dim_plot <- Seurat::DimPlot(object = loaded_plot_data,
-                                group.by = input$plot_meta)
-    main <- Seurat::HoverLocator(plot = dim_plot,
-                         information = SeuratObject::FetchData(object = loaded_plot_data,
-                                                 vars = c("donor", "timepoint", input$plot_meta)))
     
     # Next we create a legend for the right side of the plot that depicts the color scheme
     legend_label <- stringr::str_sort(levels(as.factor(loaded_plot_data@meta.data[,input$plot_meta])), numeric = TRUE)
@@ -185,7 +179,20 @@ shinyAppServer <- shinyServer(function(session, input, output) {
     legend_y_cord <- rev(seq(1:length(legend_label)))
     manual_legend_data <- data.frame(legend_x_cord, legend_y_cord, legend_label)
     
-    colors_use <- scales::hue_pal()(length(legend_label))
+    colors_use <- colorRampPalette(RColorBrewer::brewer.pal(11, "Paired"))(length(legend_label))
+    
+    
+    # Cells are colored according to the selection in the UI tSNE_plot_color
+    dim_plot <- Seurat::DimPlot(object = loaded_plot_data,
+                                group.by = input$plot_meta) + 
+                    scale_color_manual(values = colors_use)
+    main <- Seurat::HoverLocator(plot = dim_plot,
+                         information = SeuratObject::FetchData(object = loaded_plot_data,
+                                                 vars = c("donor", "timepoint", input$plot_meta)))
+    
+    
+    
+    
     
     dim_leg <- ggplot(data = manual_legend_data,
                        mapping = aes(x     = as.factor(legend_x_cord),

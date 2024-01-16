@@ -227,8 +227,8 @@ shinyAppServer <- shinyServer(function(session, input, output) {
     # Returns a feature plot - a heatmap of the dimensionality reduction overlayed with expression of th egene of interest
     loaded_plot_data <- loaded_data()
     feature_plot = Seurat::FeaturePlot(object = loaded_plot_data,
-                               features = input$plot_gene_heatmap,
-                               cols = c("grey", "blue")) +
+                               features = input$plot_gene_heatmap) + 
+      scale_color_gradientn(colors = rev(RColorBrewer::brewer.pal(11, "RdYlBu")))
       theme(legend.position = "none") +
       ggtitle("")
     
@@ -255,7 +255,8 @@ shinyAppServer <- shinyServer(function(session, input, output) {
       ylab("")
     
     if(max_expression > 0) {
-      heatmap_legend <- heatmap_legend + scale_fill_gradient(low = 'lightgrey', high = 'blue')
+      heatmap_legend <- heatmap_legend + scale_fill_gradientn(colors = rev(
+        RColorBrewer::brewer.pal(11, "RdYlBu")))
     } else {
       heatmap_legend <- heatmap_legend + scale_fill_gradient(low = 'lightgrey', high = 'lightgrey')
     }

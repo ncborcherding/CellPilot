@@ -95,7 +95,9 @@ shinyAppServer <- shinyServer(function(session, input, output) {
   all_genes <- reactive({
     # Load in the csv file containing all gene names used in the analysis. Used for quick accessibility
     req(input$dataSelect)
-    genes <- data.frame(rownames(loaded_data()@assays$RNA@data))
+    genes <- rownames(loaded_data()@assays$RNA@data)
+    genes <- genes[-as.vector(which(Matrix::rowSums(loaded_data()@assays$RNA@data) == 0))]
+    genes <- data.frame(genes)
     colnames(genes) <- "genes"
     genes
   })

@@ -85,9 +85,9 @@ shinyAppServer <- shinyServer(function(session, input, output) {
     )
   })
   
-  all_dr <- reactive({
+  dr.use <- reactive({
     req(input$dataSelect)
-    dr <- names(loaded_data()@reductions)
+    dr <- names(loaded_data()@reductions)[1]
     dr
   })
   
@@ -184,7 +184,8 @@ shinyAppServer <- shinyServer(function(session, input, output) {
     
     # Cells are colored according to the selection in the UI tSNE_plot_color
     dim_plot <- Seurat::DimPlot(object = loaded_plot_data,
-                                group.by = input$plot_meta) + 
+                                group.by = input$plot_meta,
+                                reduction = dr.use()) + 
                     scale_color_manual(values = colors_use)
     main <- Seurat::HoverLocator(plot = dim_plot,
                          information = SeuratObject::FetchData(object = loaded_plot_data,
@@ -234,7 +235,8 @@ shinyAppServer <- shinyServer(function(session, input, output) {
     # Returns a feature plot - a heatmap of the dimensionality reduction overlayed with expression of th egene of interest
     loaded_plot_data <- loaded_data()
     feature_plot = Seurat::FeaturePlot(object = loaded_plot_data,
-                               features = input$plot_gene_heatmap) + 
+                               features = input$plot_gene_heatmap,
+                               reduction = dr.use()) + 
       scale_color_gradientn(colors = rev(RColorBrewer::brewer.pal(11, "RdYlBu")))
       theme(legend.position = "none") +
       ggtitle("")

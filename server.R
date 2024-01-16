@@ -185,7 +185,6 @@ shinyAppServer <- shinyServer(function(session, input, output) {
     colors_use <- colorRampPalette(RColorBrewer::brewer.pal(11, "Paired"))(length(legend_label))
     
     
-    # Cells are colored according to the selection in the UI tSNE_plot_color
     dim_plot <- Seurat::DimPlot(object = loaded_plot_data,
                                 group.by = input$plot_meta,
                                 reduction = dr.use()) + 
@@ -194,42 +193,45 @@ shinyAppServer <- shinyServer(function(session, input, output) {
                          information = SeuratObject::FetchData(object = loaded_plot_data,
                                                  vars = c("donor", "tissue", "timepoint", input$plot_meta)))
     
+        
+    if (length(legend_label) <= 30) {
     
     
-    
-    
-    dim_leg <- ggplot(data = manual_legend_data,
-                       mapping = aes(x     = as.factor(legend_x_cord),
-                                     y     = legend_y_cord,
-                                     label = as.character(legend_label))) +
-      geom_point(size = 3, color = colors_use)  +
-      geom_text(position = position_nudge(x = 0)) +
-      theme_classic() +
-      theme(axis.line=element_blank(),
-            axis.text.x=element_blank(),
-            axis.text.y=element_blank(),
-            axis.ticks=element_blank(),
-            axis.title.x=element_blank(),
-            axis.title.y=element_blank(),
-            legend.position="none",
-            panel.background=element_blank(),
-            panel.border=element_blank(),
-            panel.grid.major=element_blank(),
-            panel.grid.minor=element_blank(),
-            plot.background=element_blank()
-      )
-    
-    leg <- ggplotly(dim_leg +
-                      theme_classic() +
-                      theme(legend.position = "none",
-                            axis.line=element_blank(),
-                            axis.text.x=element_blank(),
-                            axis.text.y=element_blank(),
-                            axis.ticks=element_blank()) +
-                      xlab("") +
-                      ylab(""))
-    sp <- subplot(main, leg, titleY = TRUE, titleX = TRUE)
-    sp %>% plotly::toWebGL()
+      dim_leg <- ggplot(data = manual_legend_data,
+                         mapping = aes(x     = as.factor(legend_x_cord),
+                                       y     = legend_y_cord,
+                                       label = as.character(legend_label))) +
+        geom_point(size = 3, color = colors_use)  +
+        geom_text(position = position_nudge(x = 0)) +
+        theme_classic() +
+        theme(axis.line=element_blank(),
+              axis.text.x=element_blank(),
+              axis.text.y=element_blank(),
+              axis.ticks=element_blank(),
+              axis.title.x=element_blank(),
+              axis.title.y=element_blank(),
+              legend.position="none",
+              panel.background=element_blank(),
+              panel.border=element_blank(),
+              panel.grid.major=element_blank(),
+              panel.grid.minor=element_blank(),
+              plot.background=element_blank()
+        )
+      
+      leg <- ggplotly(dim_leg +
+                        theme_classic() +
+                        theme(legend.position = "none",
+                              axis.line=element_blank(),
+                              axis.text.x=element_blank(),
+                              axis.text.y=element_blank(),
+                              axis.ticks=element_blank()) +
+                        xlab("") +
+                        ylab(""))
+      sp <- subplot(main, leg, titleY = TRUE, titleX = TRUE)
+      sp %>% plotly::toWebGL()
+    } else {
+      main
+    }
   })
   
   #Feature Plot

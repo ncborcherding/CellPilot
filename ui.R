@@ -1,13 +1,7 @@
-#' Shiny app server
-#'
-#' @export
-#'
-#' @importFrom shiny fluidPage fluidRow column uiOutput tabPanel textOutput h1 h2 h3 h4 h5 br p a imageOutput
-#' @importFrom plotly plotlyOutput
-#' @importFrom shinydashboard dashboardSidebar sidebarMenu menuItem dashboardBody tabItems tabItem tabBox box dashboardPage dashboardHeader
-#' @importFrom shinycssloaders withSpinner
-#' @importFrom shinyFiles shinyDirButton
-#' @importFrom DT dataTableOutput
+library(shiny)
+library(shinycssloaders)
+library(shinydashboard)
+library(plotly)
 
 rds.files <- list.files("./data", pattern = "\\.rds$")
 
@@ -18,19 +12,23 @@ sidebar <- dashboardSidebar(
              tabName = "dashboard",
              icon = icon("dashboard")
              ),
-    menuItem(selectInput("dataSelect", "Choose a data file:", 
-                         choices = c("","Figure1", "Figure2", "Figure3", "Figure7"), 
-                         multiple = FALSE)
-             ),
     menuItem(text = "About CellPilot",
              tabName = "CellPilot",
-             icon = icon("file-code-o")
-             ),
-    menuItem(downloadButton('download_SO',"Download Seurat Object")
-             ),
-    menuItem(downloadButton('download_meta',"Download Meta Data")
-             )
-    
+             icon = icon("plane-departure")
+    ),
+   selectInput("dataSelect", "Choose a data file:", 
+                         choices = c("","Figure1", "Figure2", "Figure3", "Figure7"), 
+                         multiple = FALSE),
+   menuItem(text = "Download Data", 
+            menuSubItem(downloadButton('download_SO',
+                    "Seurat Object", 
+                    style ="padding: 5px 14px 5px 14px;margin: 5px 5px 5px 5px; "),
+                    icon = NULL,),
+            menuSubItem(downloadButton('download_meta',
+                  "Meta Data",
+                  style ="padding: 5px 14px 5px 14px;margin: 5px 5px 5px 5px; "),
+                  icon = NULL)
+   )
   )
 )
 
@@ -60,7 +58,7 @@ body <- dashboardBody(
             )
     ),
 
-    tabItem(tabName = "About CellPilot",
+    tabItem(tabName = "CellPilot",
             h3(strong("Fly through single-cell data with CellPilot")),
             fluidRow(
               column(6,

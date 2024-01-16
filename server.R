@@ -65,7 +65,8 @@ shinyAppServer <- shinyServer(function(session, input, output) {
   all_meta <- reactive({
     req(input$dataSelect)
     meta.headers <- colnames(loaded_data()@meta.data)
-    meta.headers <- meta.headers[meta.headers %!in% c("mito.genes","db.weight.score", "nCount_RNA", "nFeature_RNA", "db.weight.score", "db.ratio", "db.score", "CD4.score", "CD8.score", "bio_rep", "tech_rep")]
+    meta.headers <- meta.headers[meta.headers %in% c("seurat_clusters", "donor", "tissue",  "timepoint", "orig.ident", "db.class", "CD4.annot", "CD8.annot", "DICE.labels", "DICE.pruned.labels", "CTgene", "CTnt", "CTaa", "CTstrict", "TCRB.epitope", "TCRA.epitope" )]
+    meta.headers <- meta.headers[match( c("seurat_clusters", "donor", "tissue",  "timepoint", "orig.ident", "db.class", "CD4.annot", "CD8.annot", "DICE.labels", "DICE.pruned.labels", "CTgene", "CTnt", "CTaa", "CTstrict", "TCRB.epitope", "TCRA.epitope" ), meta.headers)]
     meta.headers <- data.frame(meta.headers)
     colnames(meta.headers) <- "variables"
     meta.headers
@@ -189,7 +190,7 @@ shinyAppServer <- shinyServer(function(session, input, output) {
                     scale_color_manual(values = colors_use)
     main <- Seurat::HoverLocator(plot = dim_plot,
                          information = SeuratObject::FetchData(object = loaded_plot_data,
-                                                 vars = c("donor", "timepoint", input$plot_meta)))
+                                                 vars = c("donor", "tissue", "timepoint", input$plot_meta)))
     
     
     

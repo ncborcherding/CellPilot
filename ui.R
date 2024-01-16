@@ -49,7 +49,8 @@ body <- dashboardBody(
                 tabPanel("Violin Plot")),
               tabBox(width = 4,
                      id = "options1",
-                     tabPanel( uiOutput("featurePlotHelper"))
+                     tabPanel( uiOutput("dimredPlotHelper"),
+                               uiOutput("featurePlotHelper"))
               )
             )
     ),

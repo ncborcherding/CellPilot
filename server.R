@@ -25,7 +25,7 @@
 #' @importFrom methods is new
 
 shinyAppServer <- shinyServer(function(session, input, output) {
-
+   "%!in%" <- Negate("%in%")
   #############################
   #Loading and Downloading Data
   #############################
@@ -58,13 +58,31 @@ shinyAppServer <- shinyServer(function(session, input, output) {
     }
   )
   
+  ######################################
+  #Grabbing Variables to Adaptively Plot
+  ######################################
   
   all_meta <- reactive({
     req(input$dataSelect)
-    loaded_plot_data <- loaded_data()
-    meta.headers <- data.frame(colnames(loaded_plot_data[[]]))
+    meta.headers <- colnames(loaded_data()@meta.data)
+    meta.headers <- meta.headers[meta.headers %!in% c("mito.genes","db.weight.score", "nCount_RNA", "nFeature_RNA", "db.weight.score", "db.ratio", "db.score", "CD4.score", "CD8.score", "bio_rep", "tech_rep")]
+    meta.headers <- data.frame(meta.headers)
     colnames(meta.headers) <- "variables"
     meta.headers
+  })
+  
+  observeEvent(input$dataSelect, {
+    choicesVec <- all_meta()$variables
+    updateSelectizeInput(session, "plot_meta",
+                         choices = choicesVec,
+                         selected = NULL,
+                         server = TRUE,
+                         options = list(dropdownParent = 'body',
+                                        openOnFocus = FALSE,
+                                        items = c(),
+                                        score = getScore()
+                         )
+    )
   })
   
   all_dr <- reactive({
@@ -81,26 +99,99 @@ shinyAppServer <- shinyServer(function(session, input, output) {
     genes
   })
   
+  observeEvent(input$dataSelect, {
+    choicesVec <- all_genes()$genes
+    updateSelectizeInput(session, 
+                         "plot_gene_heatmap",
+                         choices = sort(choicesVec),
+                         selected = NULL,
+                         server = TRUE,
+                         options = list(dropdownParent = 'body',
+                                        openOnFocus = FALSE,
+                                        items = c(),
+                                        score = getScore()
+                         )
+    )
+  })
+  
+  # https://stackoverflow.com/questions/52039435/force-selectize-js-only-to-show-options-that-start-with-user-input-in-shiny
+  getScore <- function() {
+    # the updateSelectizeInput for displaying genes in the heatmaps and violin plots
+    # is finicky for genes with short names. For example, when trying to querry expression
+    # of the gene C2, hundreds of genes have C2 in their name. Therefore, I found this
+    # stack-overflow post that allows one to only return items that start with the input
+    # string
+    return(I("function(search)
+              {
+               var score = this.getScoreFunction(search);
+               return function(item)
+                      {
+                        return item.label
+                        .toLowerCase()
+                        .startsWith(search.toLowerCase()) ? 1 : 0;
+                      };
+              }"
+    )
+    )
+  }
+  
+  #################
+  #Adaptive Menus
+  ################
+  
+  output$dimredPlotHelper <- renderUI({
+    conditionalPanel(
+      condition = "input.tabset1 == 'Dimensionality Reduction'",
+      selectizeInput("plot_meta",
+                     label = h3("Variables to Plot"),
+                     choices = NULL,
+                     multiple = FALSE,
+                     options= list(maxOptions = 20)
+      )
+    )
+  })
+  
+  output$featurePlotHelper <- renderUI({
+    # The helper UI for the heatmap in which the user can select which gene should be heat-map-ified
+    conditionalPanel(
+      condition = "input.tabset1 == 'Feature Plot'",
+      selectizeInput("plot_gene_heatmap",
+                     label = h3("Genes to Plot"),
+                     choices = NULL,
+                     multiple = FALSE,
+                     options= list(maxOptions = 100)
+      )
+    )
+  })
+  
+  
+  #####################
+  #Plotting Functions
+  ####################
+  
+  #Dim Red Plot
   output$umapPlot <- renderPlotly({
-    req(input$plot_meta)
     loaded_plot_data <- loaded_data()
     # Cells are colored according to the selection in the UI tSNE_plot_color
-    dim_plot <- Seurat::DimPlot(object = loaded_plot_data)
+    dim_plot <- Seurat::DimPlot(object = loaded_plot_data,
+                                group.by = input$plot_meta)
     main <- Seurat::HoverLocator(plot = dim_plot,
                          information = SeuratObject::FetchData(object = loaded_plot_data,
-                                                 vars = c("seurat_clusters", "donor")))
+                                                 vars = c("donor", "timepoint", input$plot_meta)))
     
     # Next we create a legend for the right side of the plot that depicts the color scheme
-    legend_label <- levels(loaded_plot_data@active.ident)
+    legend_label <- stringr::str_sort(levels(as.factor(loaded_plot_data@meta.data[,input$plot_meta])), numeric = TRUE)
     legend_x_cord <- rep(1, length(legend_label))
     legend_y_cord <- rev(seq(1:length(legend_label)))
     manual_legend_data <- data.frame(legend_x_cord, legend_y_cord, legend_label)
+    
+    colors_use <- scales::hue_pal()(length(legend_label))
     
     dim_leg <- ggplot(data = manual_legend_data,
                        mapping = aes(x     = as.factor(legend_x_cord),
                                      y     = legend_y_cord,
                                      label = as.character(legend_label))) +
-      geom_point(size = 5)  +
+      geom_point(size = 3, color = colors_use)  +
       geom_text(position = position_nudge(x = 0)) +
       theme_classic() +
       theme(axis.line=element_blank(),
@@ -130,10 +221,10 @@ shinyAppServer <- shinyServer(function(session, input, output) {
     sp %>% plotly::toWebGL()
   })
   
+  #Feature Plot
   output$featurePlot <- renderPlotly({
     req(input$plot_gene_heatmap)
     # Returns a feature plot - a heatmap of the dimensionality reduction overlayed with expression of th egene of interest
-    #req(input$plot_gene_heatmap)
     loaded_plot_data <- loaded_data()
     feature_plot = Seurat::FeaturePlot(object = loaded_plot_data,
                                features = input$plot_gene_heatmap,
@@ -157,7 +248,7 @@ shinyAppServer <- shinyServer(function(session, input, output) {
     
     heatmap_legend <- ggplot(expression_sequenced) +
       geom_tile(aes(x = 1, y = TP.10k, fill = TP.10k)) +
-      scale_x_continuous(limits=c(0,2),breaks=1, labels = "TP.10K") +
+      scale_x_continuous(limits=c(0,2),breaks=1, labels = "Expr") +
       theme_classic() +
       theme(legend.position = "none") +
       xlab("") +
@@ -181,85 +272,6 @@ shinyAppServer <- shinyServer(function(session, input, output) {
     
   })
   
-  output$featurePlotHelper <- renderUI({
-    # The helper UI for the heatmap in which the user can select which gene should be heat-map-ified
-    conditionalPanel(
-      condition = "input.tabset1 == 'Feature Plot'",
-      selectizeInput("plot_gene_heatmap",
-                     label = h3("Genes to Plot"),
-                     choices = NULL,
-                     multiple = FALSE,
-                     options= list(maxOptions = 100)
-      )
-    )
-  })
-  
-  output$dimredPlotHelper <- renderUI({
-    # The helper UI for the heatmap in which the user can select which gene should be heat-map-ified
-    conditionalPanel(
-      condition = "input.tabset1 == 'Dimensionality Reduction'",
-      selectizeInput(session, 
-                     "plot_meta",
-                     label = h3("Variables to Plot"),
-                     choices = NULL,
-                     multiple = FALSE,
-                     options= list(maxOptions = 100)
-      )
-    )
-  })
-  
-  
-  observeEvent(input$dataSelect, {
-    choicesVec <- all_genes()$genes
-    updateSelectizeInput(session, 
-                         "plot_gene_heatmap",
-                         choices = sort(choicesVec),
-                         selected = NULL,
-                         server=TRUE,
-                         options = list(dropdownParent = 'body',
-                                        openOnFocus = FALSE,
-                                        items = c(),
-                                        score = getScore()
-                         )
-    )
-  })
-  
-  observeEvent(input$dataSelect, {
-    choicesVec <- all_meta()$variables
-    updateSelectizeInput(session, "plot_meta",
-                         choices = choicesVec,
-                         selected = NULL,
-                         server=TRUE,
-                         options = list(dropdownParent = 'body',
-                                        openOnFocus = FALSE,
-                                        items = c()
-                         )
-    )
-  })
-  
-  # https://stackoverflow.com/questions/52039435/force-selectize-js-only-to-show-options-that-start-with-user-input-in-shiny
-  getScore <- function() {
-    # the updateSelectizeInput for displaying genes in the heatmaps and violin plots
-    # is finicky for genes with short names. For example, when trying to querry expression
-    # of the gene C2, hundreds of genes have C2 in their name. Therefore, I found this
-    # stack-overflow post that allows one to only return items that start with the input
-    # string
-    return(I("function(search)
-              {
-               var score = this.getScoreFunction(search);
-               return function(item)
-                      {
-                        return item.label
-                        .toLowerCase()
-                        .startsWith(search.toLowerCase()) ? 1 : 0;
-                      };
-              }"
-    )
-    )
-  }
-  
-
-
   #######################
   ### Embedded images ###
   #######################

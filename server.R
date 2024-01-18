@@ -221,13 +221,19 @@ shinyAppServer <- shinyServer(function(session, input, output) {
     legend_y_cord <- rev(seq(1:length(legend_label)))
     manual_legend_data <- data.frame(legend_x_cord, legend_y_cord, legend_label)
     
-    colors_use <- colorRampPalette(RColorBrewer::brewer.pal(11, "Paired"))(length(legend_label))
+    if(length(legend_label) <= 35) {
+      colors_use <- colorRampPalette(RColorBrewer::brewer.pal(11, "Paired"))(length(legend_label))
+    } else {
+      colors_use <- colorRampPalette(RColorBrewer::brewer.pal(11, "RdYlBu"))(length(legend_label))
+    }
     
-    
+  
     dim_plot <- Seurat::DimPlot(object = loaded_plot_data,
-                                group.by = input$plot_meta,
-                                reduction = dr.use()) + 
-                    scale_color_manual(values = colors_use)
+                                  group.by = input$plot_meta,
+                                  reduction = dr.use(),
+                                  raster = FALSE) + 
+                      scale_color_manual(values = colors_use)
+    
     main <- Seurat::HoverLocator(plot = dim_plot,
                          information = SeuratObject::FetchData(object = loaded_plot_data,
                                                  vars = c("donor", "tissue", "timepoint", input$plot_meta)))
@@ -280,7 +286,8 @@ shinyAppServer <- shinyServer(function(session, input, output) {
     loaded_plot_data <- loaded_data()
     feature_plot = Seurat::FeaturePlot(object = loaded_plot_data,
                                features = input$plot_gene_heatmap,
-                               reduction = dr.use()) + 
+                               reduction = dr.use(),
+                               raster = FALSE) + 
       scale_color_gradientn(colors = rev(RColorBrewer::brewer.pal(11, "RdYlBu")))
       theme(legend.position = "none") +
       ggtitle("")

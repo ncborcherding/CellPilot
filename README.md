@@ -7,4 +7,3 @@ CellPilot is a interactive platform for single-cell data for Seurat v5 that allo
 
 ## Citation
 CellPilot is based on the work cellcuratoR, please see the citation for [cellcuratoR](https://pubmed.ncbi.nlm.nih.gov/32910939/) if using the code for analysis. In addition, if using the data provided in CellPilot, please cite the [original manuscript](https://www.researchsquare.com/article/rs-3304466/v1)
->>>>>>> 53f86f0a31b12f982119a981730505d286bb506e

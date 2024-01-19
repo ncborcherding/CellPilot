@@ -239,7 +239,7 @@ shinyAppServer <- shinyServer(function(session, input, output) {
                                                  vars = c("donor", "tissue", "timepoint", input$plot_meta)))
     
         
-    if (length(legend_label) <= 30) {
+    if (length(legend_label) <= 30 && length(legend_label) > 1) {
     
     
       dim_leg <- ggplot(data = manual_legend_data,
@@ -323,7 +323,7 @@ shinyAppServer <- shinyServer(function(session, input, output) {
     
     feature_plot <- Seurat::HoverLocator(plot = feature_plot,
                                  information = SeuratObject::FetchData(object = loaded_plot_data,
-                                                         vars = c("seurat_clusters", "donor"))) %>% plotly::toWebGL()
+                                                         vars = c("seurat_clusters", "donor", "tissue", "timepoint"))) %>% plotly::toWebGL()
     
     subplot(feature_plot,
             ggplotly(heatmap_legend),

@@ -227,18 +227,60 @@ shinyAppServer <- shinyServer(function(session, input, output) {
       colors_use <- colorRampPalette(RColorBrewer::brewer.pal(11, "RdYlBu"))(length(legend_label))
     }
     
-  
+    names(colors_use) <- legend_label
     dim_plot <- Seurat::DimPlot(object = loaded_plot_data,
-                                  group.by = input$plot_meta,
-                                  reduction = dr.use(),
-                                  raster = FALSE) + 
-                      scale_color_manual(values = colors_use)
+                                group.by = input$plot_meta,
+                                reduction = dr.use(),
+                                raster = FALSE) + 
+      scale_color_manual(values = colors_use)
     
-    main <- Seurat::HoverLocator(plot = dim_plot,
-                         information = SeuratObject::FetchData(object = loaded_plot_data,
-                                                 vars = c("donor", "tissue", "timepoint", input$plot_meta)))
+    if(input$plot_meta %in% c("TCRB.epitope", "TCRA.epitope")) {
+      #Recreating HoverLocator() to add size and alpha
+      plot.build <- suppressWarnings(expr = Seurat:::GGpointToPlotlyBuild(
+        plot = dim_plot,
+        information = SeuratObject::FetchData(object = loaded_plot_data,
+                                              vars = c("donor", "tissue", "timepoint"))
+      ))
+      plot.build$alpha <- ifelse(plot.build$color == "grey50", 0.2, 1)
+      plot.build$size <- ifelse(plot.build$color == "grey50", 1, 3)
+      
+      xaxis <- list(title = names(x = data)[1],
+                    showgrid = FALSE,
+                    zeroline = FALSE,
+                    showline = TRUE)
+      
+      yaxis <- list(title = names(x = data)[2],
+                    showgrid = FALSE,
+                    zeroline = FALSE,
+                    showline = TRUE)
+      
+      title = list(color = 'black')
+      plotbg = 'white'
+      
+      main = plot_ly(data = plot.build,
+                  x = ~x,
+                  y = ~y,
+                  type = 'scatter',
+                  mode = 'markers',
+                  color = ~I(color),
+                  marker = list(opacity = ~alpha, 
+                                size = ~size),
+                  hoverinfo = 'text',
+                  text = ~feature)
+      
+      main <- plotly::layout(main,
+                          xaxis = xaxis,
+                          yaxis = yaxis,
+                          title = dim_plot$labels$title,
+                          titlefont = title,
+                          paper_bgcolor = plotbg,
+                          plot_bgcolor = plotbg)
+    } else {
+        main <- Seurat::HoverLocator(plot = dim_plot,
+                                 information = SeuratObject::FetchData(object = loaded_plot_data,
+                                                                       vars = c("donor", "tissue", "timepoint", input$plot_meta)))
+    }
     
-        
     if (length(legend_label) <= 30 && length(legend_label) > 1) {
     
     
@@ -272,7 +314,7 @@ shinyAppServer <- shinyServer(function(session, input, output) {
                               axis.ticks=element_blank()) +
                         xlab("") +
                         ylab(""))
-      sp <- subplot(main, leg, titleY = TRUE, titleX = TRUE)
+      sp <- subplot(main, leg, titleY = TRUE, titleX = TRUE, widths = c(0.8, 0.2))
       sp %>% plotly::toWebGL()
     } else {
       main

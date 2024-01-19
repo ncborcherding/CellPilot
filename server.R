@@ -239,7 +239,7 @@ shinyAppServer <- shinyServer(function(session, input, output) {
       plot.build <- suppressWarnings(expr = Seurat:::GGpointToPlotlyBuild(
         plot = dim_plot,
         information = SeuratObject::FetchData(object = loaded_plot_data,
-                                              vars = c("donor", "tissue", "timepoint"))
+                                              vars = c("donor", "tissue", "timepoint", input$plot_meta))
       ))
       plot.build$alpha <- ifelse(plot.build$color == "grey50", 0.2, 1)
       plot.build$size <- ifelse(plot.build$color == "grey50", 1, 3)

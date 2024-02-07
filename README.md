@@ -12,8 +12,8 @@ CellPilot is a interactive platform for single-cell data for Seurat v5 that allo
 CellPilot can be adapted to work with your Seurat objects (saved as rds). Just download the repository and add a **data** folder with your objects. 
 
 ```
-├── dara
-│   └── Seurat rds objects
+└── data
+    └── Seurat rds objects
 ```
 
 ## Citation

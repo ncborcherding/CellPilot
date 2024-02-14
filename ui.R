@@ -70,7 +70,8 @@ body <- dashboardBody(
                        a(href = "https://www.researchsquare.com/article/rs-3304466/v1", "prepint."), 
                        "The data as a whole is comprised of peripheral blood and/or lymph node samples from 
                        HLA-DPB1*04-restricted patients that underwent the BNT162b2 mRNA vaccine series or natural infection. 
-                       Please refer to the manuscript to identify the data of interest.",
+                       Please refer to the manuscript to identify the data of interest. Aligned data will be available on
+                        Zenodo at the ", a(href = "https://zenodo.org/records/10257572", "10257572"), " repository.",
                        style = "font-size:20px"),
                      br(),
                      p("The software is based on ", strong("cellcuratoR"), " by Drew Voigt, more information can be found in the following ", 

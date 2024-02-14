@@ -3,6 +3,7 @@ library(ggplot2)
 library(magrittr)
 library(Seurat)
 library(plotly)
+library(stringr)
 
 shinyAppServer <- shinyServer(function(session, input, output) {
    "%!in%" <- Negate("%in%")
@@ -381,11 +382,14 @@ shinyAppServer <- shinyServer(function(session, input, output) {
     req(input$plot_gene_violin)
     # Returns a feature plot - a heatmap of the dimensionality reduction overlayed with expression of th egene of interest
     loaded_plot_data <- loaded_data()
-    
+                    
     legend_label <- stringr::str_sort(levels(as.factor(loaded_plot_data@meta.data[,input$plot_meta_violin])), numeric = TRUE)
     legend_x_cord <- rep(1, length(legend_label))
     legend_y_cord <- rev(seq(1:length(legend_label)))
     manual_legend_data <- data.frame(legend_x_cord, legend_y_cord, legend_label)
+    
+    #Adding discrete reorder of x-axis here
+    loaded_plot_data@meta.data[,input$plot_meta_violin] <- factor(loaded_plot_data@meta.data[,input$plot_meta_violin], levels = legend_label)
     
     colors_use <- colorRampPalette(RColorBrewer::brewer.pal(11, "Paired"))(length(legend_label))
     

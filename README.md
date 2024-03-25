@@ -5,7 +5,7 @@
 
 CellPilot is a interactive platform for single-cell data for Seurat v5 that allows for the analysis of data, production of figure-quality graphs, and downloading of data. The platform itself enables quick interaction and sharing of single-cell data and the generation of feature and violin plots. 
 
-[Interact with CellPilot](https://cellpilot.emed.wustl.edu/CellPilot/)
+[Interact with CellPilot](https://cellpilot.emed.wustl.edu/)
 
 ## Quick Usage
 

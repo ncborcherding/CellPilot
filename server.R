@@ -5,6 +5,9 @@ library(Seurat)
 library(plotly)
 library(stringr)
 
+#Increasing size for download purposes
+options(shiny.maxRequestSize = 1000 * 1024^2)  # 1 GB limit
+
 shinyAppServer <- shinyServer(function(session, input, output) {
    "%!in%" <- Negate("%in%")
   #############################
@@ -18,7 +21,6 @@ shinyAppServer <- shinyServer(function(session, input, output) {
       NULL
     }
   })
- 
   
   output$download_SO <- downloadHandler(
     

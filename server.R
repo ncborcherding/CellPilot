@@ -34,6 +34,13 @@ shinyAppServer <- shinyServer(function(session, input, output) {
       progress <- shiny::Progress$new()
       on.exit(progress$close())
       progress$set(message = "Downloading data...", value = 0)
+      
+      # Simulate steps in data download
+      for (i in 1:10) {
+        Sys.sleep(10)  # Simulate download step
+        progress$inc(1 / 10)  # Increment progress
+      }
+      
       saveRDS(loaded_data(), fname)
     }
   )
@@ -46,6 +53,13 @@ shinyAppServer <- shinyServer(function(session, input, output) {
       progress <- shiny::Progress$new()
       on.exit(progress$close())
       progress$set(message = "Downloading data...", value = 0)
+      
+      # Simulate steps in data download
+      for (i in 1:10) {
+        Sys.sleep(10)  # Simulate download step
+        progress$inc(1 / 10)  # Increment progress
+      }
+      
       write.csv(loaded_data()@meta.data, fname)
     }
   )

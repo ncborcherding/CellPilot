@@ -9,6 +9,9 @@ library(stringr)
 options(shiny.maxRequestSize = 1000 * 1024^2)  # 1 GB limit
 
 shinyAppServer <- shinyServer(function(session, input, output) {
+  # Allow session to reconnect if it gets disconnected
+  session$allowReconnect(TRUE)
+  
    "%!in%" <- Negate("%in%")
   #############################
   #Loading and Downloading Data
@@ -28,6 +31,9 @@ shinyAppServer <- shinyServer(function(session, input, output) {
       paste0(input$dataSelect, ".rds")
     }, 
     content = function(fname){
+      progress <- shiny::Progress$new()
+      on.exit(progress$close())
+      progress$set(message = "Downloading data...", value = 0)
       saveRDS(loaded_data(), fname)
     }
   )
@@ -37,6 +43,9 @@ shinyAppServer <- shinyServer(function(session, input, output) {
       paste0(input$dataSelect, "_meta.data.csv")
     }, 
     content = function(fname){
+      progress <- shiny::Progress$new()
+      on.exit(progress$close())
+      progress$set(message = "Downloading data...", value = 0)
       write.csv(loaded_data()@meta.data, fname)
     }
   )

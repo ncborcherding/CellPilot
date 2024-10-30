@@ -27,39 +27,49 @@ shinyAppServer <- shinyServer(function(session, input, output) {
   
    output$download_SO <- downloadHandler(
      filename = function() {
+       # Use the selected input to determine the file name dynamically
        paste0(input$dataSelect, ".rds")
      },
-     content = function(fname) {
+     content = function(file) {
+       # Define the full path to the file in the /data/ directory
+       file_path <- file.path("data", paste0(input$dataSelect, ".rds"))
+       
        # Initialize the progress bar
        progress <- shiny::Progress$new()
        on.exit(progress$close())
-       progress$set(message = "Downloading data...", value = 0)
+       progress$set(message = "Preparing download...", value = 0)
        
-       # Get the size of the dataset in MB
-       data_size <- as.numeric(object.size(loaded_data())) / (1024^2)  # Convert bytes to MB
+       # Check if the file exists
+       if (!file.exists(file_path)) {
+         stop("The selected file does not exist.")
+       }
        
-       # Determine the number of steps and sleep time dynamically
-       if (data_size <= 10) {
+       # Get the size of the file (in MB) to adjust progress and timing
+       file_size <- file.info(file_path)$size / (1024^2)  # Convert bytes to MB
+       
+       # Determine the number of steps and sleep time based on file size
+       if (file_size <= 10) {
          steps <- 5
-         sleep_time <- 0.5  # Short wait for smaller files
-       } else if (data_size <= 100) {
+         sleep_time <- 0.5
+       } else if (file_size <= 100) {
          steps <- 10
-         sleep_time <- 1  # Moderate wait for medium-sized files
+         sleep_time <- 1
        } else {
          steps <- 20
-         sleep_time <- 2  # Longer wait for larger files
+         sleep_time <- 2
        }
        
-       # Simulate the download with adaptive steps and sleep time
+       # Simulate download preparation steps
        for (i in 1:steps) {
-         Sys.sleep(sleep_time)  # Simulate step time
-         progress$inc(1 / steps, detail = paste("Processing step", i, "of", steps))
+         Sys.sleep(sleep_time)  # Simulate processing
+         progress$inc(1 / steps, detail = paste("Step", i, "of", steps))
        }
        
-       # Save the data after completing the steps
-       saveRDS(loaded_data(), fname)
+       # Copy the file from /data/ to the target location for download
+       file.copy(file_path, file)
      }
    )
+   
    
   
   output$download_meta<- downloadHandler(

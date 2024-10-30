@@ -25,25 +25,42 @@ shinyAppServer <- shinyServer(function(session, input, output) {
     }
   })
   
-  output$download_SO <- downloadHandler(
-    
-    filename = function(){
-      paste0(input$dataSelect, ".rds")
-    }, 
-    content = function(fname){
-      progress <- shiny::Progress$new()
-      on.exit(progress$close())
-      progress$set(message = "Downloading data...", value = 0)
-      
-      # Simulate steps in data download
-      for (i in 1:10) {
-        Sys.sleep(10)  # Simulate download step
-        progress$inc(1 / 10)  # Increment progress
-      }
-      
-      saveRDS(loaded_data(), fname)
-    }
-  )
+   output$download_SO <- downloadHandler(
+     filename = function() {
+       paste0(input$dataSelect, ".rds")
+     },
+     content = function(fname) {
+       # Initialize the progress bar
+       progress <- shiny::Progress$new()
+       on.exit(progress$close())
+       progress$set(message = "Downloading data...", value = 0)
+       
+       # Get the size of the dataset in MB
+       data_size <- as.numeric(object.size(loaded_data())) / (1024^2)  # Convert bytes to MB
+       
+       # Determine the number of steps and sleep time dynamically
+       if (data_size <= 10) {
+         steps <- 5
+         sleep_time <- 0.5  # Short wait for smaller files
+       } else if (data_size <= 100) {
+         steps <- 10
+         sleep_time <- 1  # Moderate wait for medium-sized files
+       } else {
+         steps <- 20
+         sleep_time <- 2  # Longer wait for larger files
+       }
+       
+       # Simulate the download with adaptive steps and sleep time
+       for (i in 1:steps) {
+         Sys.sleep(sleep_time)  # Simulate step time
+         progress$inc(1 / steps, detail = paste("Processing step", i, "of", steps))
+       }
+       
+       # Save the data after completing the steps
+       saveRDS(loaded_data(), fname)
+     }
+   )
+   
   
   output$download_meta<- downloadHandler(
     filename = function(){
